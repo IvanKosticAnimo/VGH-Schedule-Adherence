@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VGH Schedule Adherence Analysis Report</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: #1a1a1a;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(255,255,255,0.1);
+            border: 1px solid #333;
+        }
+        
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .period {
+            text-align: center;
+            color: #888;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .summary-card {
+            background: #2a2a2a;
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid #444;
+        }
+        
+        .summary-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1em;
+            color: #ccc;
+            font-weight: 400;
+        }
+        
+        .summary-card .value {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin: 0;
+            color: #fff;
+        }
+        
+        .insights {
+            background: #2a2a2a;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #dc3545;
+            border: 1px solid #444;
+        }
+        
+        .insights h3 {
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+        
+        .insights ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .insights li {
+            margin-bottom: 8px;
+            color: #ccc;
+        }
+        
+        .employee-table {
+            background: #2a2a2a;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            border: 1px solid #444;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #333;
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9em;
+            border-bottom: 1px solid #555;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #444;
+            font-size: 0.9em;
+            color: #fff;
+        }
+        
+        tr:hover {
+            background: #3a3a3a;
+        }
+        
+        .adherence-excellent { color: #28a745; font-weight: bold; }
+        .adherence-good { color: #17a2b8; font-weight: bold; }
+        .adherence-warning { color: #ffc107; font-weight: bold; }
+        .adherence-poor { color: #dc3545; font-weight: bold; }
+        
+        .variance-positive { color: #28a745; font-weight: bold; }
+        .variance-negative { color: #dc3545; }
+        
+        .performance-distribution {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .performance-category {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 1px solid #444;
+        }
+        
+        .excellent { border-left-color: #28a745; }
+        .good { border-left-color: #17a2b8; }
+        .warning { border-left-color: #ffc107; }
+        .poor { border-left-color: #dc3545; }
+        
+        .category-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        
+        .category-count {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+        
+        .category-percentage {
+            font-size: 0.9em;
+            color: #ccc;
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .badge.excellent {
+            background: #1e5128;
+            color: #4ade80;
+            border: 1px solid #28a745;
+        }
+        
+        .badge.good {
+            background: #1e3a44;
+            color: #22d3ee;
+            border: 1px solid #17a2b8;
+        }
+        
+        .badge.warning {
+            background: #4a3d1a;
+            color: #fbbf24;
+            border: 1px solid #ffc107;
+        }
+        
+        .badge.poor {
+            background: #4a1e1e;
+            color: #f87171;
+            border: 1px solid #dc3545;
+        }
+        
+        .action-box {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border: 1px solid #444;
+        }
+        
+        .action-box.critical {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .action-box.positive {
+            border-left: 4px solid #28a745;
+        }
+        
+        .action-box.negative {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .action-box.info {
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .action-box h3 {
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+        
+        .action-box ol,
+        .action-box ul {
+            margin: 0;
+            color: #ccc;
+        }
+        
+        .action-box li {
+            margin-bottom: 8px;
+        }
+        
+        .action-box strong {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>VGH Schedule Adherence Analysis Report</h1>
+        <div class="period">09/06 - 06/07</div>
+        
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Overall Adherence Rate</h3>
+                <p class="value">85.41%</p>
+            </div>
+            <div class="summary-card">
+                <h3>Total Employees</h3>
+                <p class="value">27</p>
+            </div>
+            <div class="summary-card">
+                <h3>Total Planned Hours</h3>
+                <p class="value">4,290</p>
+            </div>
+            <div class="summary-card">
+                <h3>Total Actual Work</h3>
+                <p class="value">3,664</p>
+            </div>
+            <div class="summary-card">
+                <h3>Hours Variance</h3>
+                <p class="value">-626</p>
+            </div>
+            <div class="summary-card">
+                <h3>Perfect Attendance</h3>
+                <p class="value">6</p>
+            </div>
+        </div>
+        
+        <div class="insights">
+            <h3>SIGNIFICANT ATTENDANCE CONCERNS</h3>
+            <ul>
+                <li><strong>MODERATE UNDERSTAFFING:</strong> 85.41% adherence shows room for improvement - 14.59% workforce capacity loss</li>
+                <li><strong>CONCERNING LEAVE PATTERNS:</strong> High leave usage across multiple staff members needs attention</li>
+                <li><strong>STRONG CORE TEAM:</strong> 6 employees achieving 100% performance - solid foundation to build on</li>
+                <li><strong>IMPROVEMENT OPPORTUNITIES:</strong> 13 staff in "needs attention" category could be coached to excellence</li>
+                <li><strong>FOCUSED ACTION NEEDED:</strong> Only 3 employees in critical performance zone requiring immediate intervention</li>
+            </ul>
+        </div>
+        
+        <div class="performance-distribution">
+            <div class="performance-category excellent">
+                <div class="category-title">Excellent (100%+)</div>
+                <div class="category-count">6</div>
+                <div class="category-percentage">22.2% of employees</div>
+            </div>
+            <div class="performance-category good">
+                <div class="category-title">Good (90-99%)</div>
+                <div class="category-count">5</div>
+                <div class="category-percentage">18.5% of employees</div>
+            </div>
+            <div class="performance-category warning">
+                <div class="category-title">Needs Attention (70-89%)</div>
+                <div class="category-count">13</div>
+                <div class="category-percentage">48.1% of employees</div>
+            </div>
+            <div class="performance-category poor">
+                <div class="category-title">Poor (<70%)</div>
+                <div class="category-count">3</div>
+                <div class="category-percentage">11.1% of employees</div>
+            </div>
+        </div>
+        
+        <h2 style="color: #fff; margin: 40px 0 20px 0;">Individual Employee Performance</h2>
+        
+        <div class="employee-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Employee Name</th>
+                        <th>Planned Hours</th>
+                        <th>Actual Work</th>
+                        <th>Adherence %</th>
+                        <th>Variance</th>
+                        <th>Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Alicia Leng</td>
+                        <td>160.0</td>
+                        <td>160.0</td>
+                        <td class="adherence-excellent">100.00%</td>
+                        <td style="color: #888;">0.0 hrs</td>
+                        <td><span class="badge excellent">Perfect</span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Safeya Gani</td>
+                        <td>160.0</td>
+                        <td>160.0</td>
+                        <td class="adherence-excellent">100.00%</td>
+                        <td style="color: #888;">0.0 hrs</td>
+                        <td><span class="badge excellent">Perfect</span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Belinda Graham</td>
+                        <td>140.0</td>
+                        <td>140.0</td>
+                        <td class="adherence-excellent">100.00%</td>
+                        <td style="color: #888;">0.0 hrs</td>
+                        <td><span class="badge excellent">Perfect</span></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Diego Palma</td>
+                        <td>150.0</td>
+                        <td>150.0</td>
+                        <td class="adherence-excellent">100.00%</td>
+                        <td style="color: #888;">0.0 hrs</td>
+                        <td><span class="badge excellent">Perfect</span></td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>Elleia Russell</td>
+                        <td>160.0</td>
+                        <td>160.0</td>
+                        <td class="adherence-excellent">100.00%</td>
+                        <td style="color: #888;">0.0 hrs</td>
+                        <td><span class="badge excellent">Perfect</span></td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>Midori Hong</td>
+                        <td>150.0</td>
+                        <td>150.0</td>
+                        <td class="adherence-excellent">100.00%</td>
+                        <td style="color: #888;">0.0 hrs</td>
+                        <td><span class="badge excellent">Perfect</span></td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td>Adam Restaino</td>
+                        <td>160.0</td>
+                        <td>150.5</td>
+                        <td class="adherence-good">94.06%</td>
+                        <td class="variance-negative">-9.5 hrs</td>
+                        <td><span class="badge good">Good</span></td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>Natasha Rayner</td>
+                        <td>160.0</td>
+                        <td>150.5</td>
+                        <td class="adherence-good">94.06%</td>
+                        <td class="variance-negative">-9.5 hrs</td>
+                        <td><span class="badge good">Good</span></td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td>Douglas Mullen-Oldfield</td>
+                        <td>150.0</td>
+                        <td>140.5</td>
+                        <td class="adherence-good">93.67%</td>
+                        <td class="variance-negative">-9.5 hrs</td>
+                        <td><span class="badge good">Good</span></td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>Amara Harsley</td>
+                        <td>160.0</td>
+                        <td>150.5</td>
+                        <td class="adherence-good">94.06%</td>
+                        <td class="variance-negative">-9.5 hrs</td>
+                        <td><span class="badge good">Good</span></td>
+                    </tr>
+                    <tr>
+                        <td>11</td>
+                        <td>Ryan Cliffe</td>
+                        <td>160.0</td>
+                        <td>150.5</td>
+                        <td class="adherence-good">94.06%</td>
+                        <td class="variance-negative">-9.5 hrs</td>
+                        <td><span class="badge good">Good</span></td>
+                    </tr>
+                    <tr>
+                        <td>12</td>
+                        <td>Anna Thomas</td>
+                        <td>160.0</td>
+                        <td>141.0</td>
+                        <td class="adherence-warning">88.13%</td>
+                        <td class="variance-negative">-19.0 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>13</td>
+                        <td>Caitlyn Brown</td>
+                        <td>170.0</td>
+                        <td>152.0</td>
+                        <td class="adherence-warning">89.41%</td>
+                        <td class="variance-negative">-18.0 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>14</td>
+                        <td>Declan McMath</td>
+                        <td>170.0</td>
+                        <td>144.0</td>
+                        <td class="adherence-warning">84.71%</td>
+                        <td class="variance-negative">-26.0 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>15</td>
+                        <td>Tony Cocking</td>
+                        <td>150.0</td>
+                        <td>131.0</td>
+                        <td class="adherence-warning">87.33%</td>
+                        <td class="variance-negative">-19.0 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>16</td>
+                        <td>Eddie Tuckerman</td>
+                        <td>160.0</td>
+                        <td>141.0</td>
+                        <td class="adherence-warning">88.13%</td>
+                        <td class="variance-negative">-19.0 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>17</td>
+                        <td>Alex Klanert</td>
+                        <td>160.0</td>
+                        <td>130.5</td>
+                        <td class="adherence-warning">81.56%</td>
+                        <td class="variance-negative">-29.5 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>18</td>
+                        <td>Lilly Bajada</td>
+                        <td>160.0</td>
+                        <td>131.5</td>
+                        <td class="adherence-warning">82.19%</td>
+                        <td class="variance-negative">-28.5 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>19</td>
+                        <td>Skyla Dostovaloff</td>
+                        <td>170.0</td>
+                        <td>139.0</td>
+                        <td class="adherence-warning">81.76%</td>
+                        <td class="variance-negative">-31.0 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>20</td>
+                        <td>Madison Sleep</td>
+                        <td>160.0</td>
+                        <td>133.5</td>
+                        <td class="adherence-warning">83.44%</td>
+                        <td class="variance-negative">-26.5 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>21</td>
+                        <td>Kiara Seneviratne</td>
+                        <td>160.0</td>
+                        <td>126.75</td>
+                        <td class="adherence-warning">79.22%</td>
+                        <td class="variance-negative">-33.25 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>22</td>
+                        <td>Mini Webb</td>
+                        <td>160.0</td>
+                        <td>122.0</td>
+                        <td class="adherence-warning">76.25%</td>
+                        <td class="variance-negative">-38.0 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>23</td>
+                        <td>Zachary Paroissien</td>
+                        <td>160.0</td>
+                        <td>122.0</td>
+                        <td class="adherence-warning">76.25%</td>
+                        <td class="variance-negative">-38.0 hrs</td>
+                        <td><span class="badge warning">Needs Attention</span></td>
+                    </tr>
+                    <tr>
+                        <td>24</td>
+                        <td>Anthony Bowles</td>
+                        <td>160.0</td>
+                        <td>112.5</td>
+                        <td class="adherence-poor">70.31%</td>
+                        <td class="variance-negative">-47.5 hrs</td>
+                        <td><span class="badge poor">Poor</span></td>
+                    </tr>
+                    <tr>
+                        <td>25</td>
+                        <td>Ali Badzak</td>
+                        <td>160.0</td>
+                        <td>115.0</td>
+                        <td class="adherence-poor">71.88%</td>
+                        <td class="variance-negative">-45.0 hrs</td>
+                        <td><span class="badge poor">Poor</span></td>
+                    </tr>
+                    <tr>
+                        <td>26</td>
+                        <td>Luka Conroy</td>
+                        <td>160.0</td>
+                        <td>112.5</td>
+                        <td class="adherence-poor">70.31%</td>
+                        <td class="variance-negative">-47.5 hrs</td>
+                        <td><span class="badge poor">Poor</span></td>
+                    </tr>
+                    <tr>
+                        <td>27</td>
+                        <td>Holly Zindilis</td>
+                        <td>160.0</td>
+                        <td>112.5</td>
+                        <td class="adherence-poor">70.31%</td>
+                        <td class="variance-negative">-47.5 hrs</td>
+                        <td><span class="badge poor">Poor</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
